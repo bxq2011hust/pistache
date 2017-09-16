@@ -118,7 +118,8 @@ Transport::disarmTimer(Fd fd) {
 
 void
 Transport::handleIncoming(const std::shared_ptr<Peer>& peer) {
-    char buffer[Const::MaxBuffer];
+    //char buffer[Const::MaxBuffer];
+    char *buffer = new char[Const::MaxBuffer];
     memset(buffer, 0, sizeof buffer);
 
     ssize_t totalBytes = 0;
@@ -157,6 +158,7 @@ Transport::handleIncoming(const std::shared_ptr<Peer>& peer) {
             }
         }
     }
+    delete [] buffer;
 }
 
 void
