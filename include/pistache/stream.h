@@ -82,20 +82,25 @@ public:
     typedef StreamBuf<CharT> Base;
 
     ArrayStreamBuf()
-      : size(0)
+      : bytes(new CharT[N]), size(0)
     {
         memset(bytes, 0, N);
         Base::setg(bytes, bytes, bytes + N);
     }
 
     template<size_t M>
-    ArrayStreamBuf(char (&arr)[M]) {
+    ArrayStreamBuf(char (&arr)[M]) : bytes(new CharT[N]) {
         static_assert(M <= N, "Source array exceeds maximum capacity");
         memcpy(bytes, arr, M);
         size = M;
         Base::setg(bytes, bytes, bytes + M);
     }
 
+    ~ArrayStreamBuf()
+    {
+        delete [] bytes;
+    }
+    
     bool feed(const char* data, size_t len) {
         if (size + len >= N) {
             return false;
@@ -122,7 +127,7 @@ public:
     }
 
 private:
-    char bytes[N];
+    char *bytes;
     size_t size;
 };
 
