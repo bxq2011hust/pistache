@@ -82,7 +82,7 @@ protected:
 
     Header::Collection headers_;
     std::string body_;
-
+    bool bodyRead = false;
     CookieJar cookies_;
 };
 
