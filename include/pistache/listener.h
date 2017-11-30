@@ -39,14 +39,14 @@ public:
         TimePoint tick;
     };
 
-    Listener();
+    Listener(const size_t & maxSocket = 1000);
     ~Listener();
 
-    Listener(const Address& address);
+    Listener(const Address& address, const size_t & maxSocket = 1000);
     void init(
             size_t workers,
             Flags<Options> options = Options::None,
-            int backlog = Const::MaxBacklog);
+            int backlog = Const::MaxBacklog, const size_t & maxSocket = 1000);
     void setHandler(const std::shared_ptr<Handler>& handler);
 
     bool bind();
@@ -70,6 +70,8 @@ private:
     Address addr_; 
     int listen_fd;
     int backlog_;
+    size_t maxSocket_;
+    
     NotifyFd shutdownFd;
     Polling::Epoll poller;
 

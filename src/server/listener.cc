@@ -72,16 +72,18 @@ void setSocketOptions(Fd fd, Flags<Options> options) {
 
 }
 
-Listener::Listener()
+Listener::Listener(const size_t & maxSocket)
     : listen_fd(-1)
     , backlog_(Const::MaxBacklog)
+    , maxSocket_(maxSocket)
     , reactor_(Aio::Reactor::create())
 { }
 
-Listener::Listener(const Address& address)
+Listener::Listener(const Address& address, const size_t & maxSocket)
     : addr_(address)
     , listen_fd(-1)
     , backlog_(Const::MaxBacklog)
+    , maxSocket_(maxSocket)    
     , reactor_(Aio::Reactor::create())
 {
 }
@@ -94,7 +96,7 @@ Listener::~Listener() {
 void
 Listener::init(
     size_t workers,
-    Flags<Options> options, int backlog)
+    Flags<Options> options, int backlog, const size_t & maxSocket)
 {
     if (workers > hardware_concurrency()) {
         // Log::warning() << "More workers than available cores"
@@ -102,6 +104,7 @@ Listener::init(
 
     options_ = options;
     backlog_ = backlog;
+    maxSocket_ = maxSocket;
 
     if (options_.hasFlag(Options::InstallSignalHandler)) {
         if (signal(SIGINT, handle_sigint) == SIG_ERR) {
@@ -309,6 +312,10 @@ Listener::handleNewConnection() {
     int client_fd = ::accept(listen_fd, (struct sockaddr *)&peer_addr, &peer_addr_len);
     if (client_fd < 0) {
         throw std::runtime_error(strerror(errno));
+    }
+    else if(client_fd >= maxSocket_) {
+        ::close(client_fd);
+        return;
     }
 
     make_non_blocking(client_fd);
