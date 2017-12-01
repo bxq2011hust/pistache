@@ -323,7 +323,7 @@ Transport::handleConnectionQueue() {
 
 void
 Transport::handleIncoming(const std::shared_ptr<Connection>& connection) {
-    char buffer[Const::MaxBuffer];
+    char buffer[Const::BufferSize];
     memset(buffer, 0, sizeof buffer);
 
     ssize_t totalBytes = 0;
@@ -331,7 +331,7 @@ Transport::handleIncoming(const std::shared_ptr<Connection>& connection) {
 
         ssize_t bytes;
 
-        bytes = recv(connection->fd, buffer + totalBytes, Const::MaxBuffer - totalBytes, 0);
+        bytes = recv(connection->fd, buffer + totalBytes, Const::BufferSize - totalBytes, 0);
         if (bytes == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 if (totalBytes > 0) {
@@ -355,7 +355,7 @@ Transport::handleIncoming(const std::shared_ptr<Connection>& connection) {
 
         else {
             totalBytes += bytes;
-            if (totalBytes >= Const::MaxBuffer) {
+            if (totalBytes >= Const::BufferSize) {
                 std::cerr << "Too long packet" << std::endl;
                 break;
             }

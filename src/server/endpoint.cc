@@ -13,7 +13,10 @@ namespace Pistache {
 namespace Http {
 
 Endpoint::Options::Options()
-    : threads_(1), maxSocket_(1000)
+    : threads_(1)
+    , backlog_(Const::MaxBacklog)
+    , maxSocket_(1000)
+    , maxBufferSize_(Const::BufferSize)
 { }
 
 Endpoint::Options&
@@ -37,6 +40,12 @@ Endpoint::Options::backlog(int val) {
 Endpoint::Options&
 Endpoint::Options::maxSocket(size_t val) {
     maxSocket_ = val;
+        return *this;
+}
+
+Endpoint::Options&
+Endpoint::Options::maxBufferSize(size_t val) {
+    maxBufferSize_ = val;
     return *this;
 }
 
@@ -49,7 +58,7 @@ Endpoint::Endpoint(const Address& addr)
 
 void
 Endpoint::init(const Endpoint::Options& options) {
-    listener.init(options.threads_, options.flags_, options.maxSocket_);
+    listener.init(options.threads_, options.flags_, options.backlog_, options.maxSocket_, options.maxBufferSize_);
 }
 
 void

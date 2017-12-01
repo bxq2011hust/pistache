@@ -650,9 +650,10 @@ namespace Private {
     };
 
     struct ParserBase {
-        ParserBase()
+        ParserBase(size_t maxSize)
             : currentStep(0)
             , cursor(&buffer)
+            , maxBufferSize(maxSize)
         {
         }
 
@@ -670,7 +671,7 @@ namespace Private {
 
         State parse();
 
-        ArrayStreamBuf<Const::MaxBuffer> buffer;
+        SmallStreamBuf<Const::BufferSize> buffer;
         StreamCursor cursor;
 
     protected:
@@ -678,14 +679,14 @@ namespace Private {
 
         std::array<std::unique_ptr<Step>, StepsCount> allSteps;
         size_t currentStep;
-
+        size_t maxBufferSize;
     };
 
     template<typename Message> struct Parser;
 
     template<> struct Parser<Http::Request> : public ParserBase {
-        Parser()
-            : ParserBase()
+        Parser(size_t maxBufferSize)
+            : ParserBase(maxBufferSize)
         { 
             allSteps[0].reset(new RequestLineStep(&request));
             allSteps[1].reset(new HeadersStep(&request));
@@ -693,7 +694,7 @@ namespace Private {
         }
 
         Parser(const char* data, size_t len)
-            : ParserBase()
+            : ParserBase(len)
         {
             allSteps[0].reset(new RequestLineStep(&request));
             allSteps[1].reset(new HeadersStep(&request));
@@ -716,7 +717,7 @@ namespace Private {
 
     template<> struct Parser<Http::Response> : public ParserBase {
         Parser()
-            : ParserBase()
+            : ParserBase(Const::BufferSize)
         {
             allSteps[0].reset(new ResponseLineStep(&response));
             allSteps[1].reset(new HeadersStep(&response));
@@ -724,7 +725,7 @@ namespace Private {
         }
 
         Parser(const char* data, size_t len)
-            : ParserBase()
+            : ParserBase(len)
         {
             allSteps[0].reset(new ResponseLineStep(&response));
             allSteps[1].reset(new HeadersStep(&response));

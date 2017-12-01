@@ -20,7 +20,7 @@ class Handler;
 
 class Transport : public Aio::Handler {
 public:
-    Transport(const std::shared_ptr<Tcp::Handler>& handler);
+    Transport(const std::shared_ptr<Tcp::Handler>& handler, size_t maxBufferSize);
 
     void init(const std::shared_ptr<Tcp::Handler>& handler);
 
@@ -77,6 +77,8 @@ public:
     void disarmTimer(Fd fd);
 
     std::shared_ptr<Aio::Handler> clone() const;
+
+    size_t getMaxBufferSize() const;
 
 private:
     enum WriteStatus {
@@ -226,6 +228,8 @@ private:
     NotifyFd notifier;
 
     std::shared_ptr<Tcp::Handler> handler_;
+
+    size_t maxBufferSize_;
 
     bool isPeerFd(Fd fd) const;
     bool isTimerFd(Fd fd) const;

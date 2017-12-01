@@ -464,7 +464,8 @@ namespace Private {
 
     bool
     ParserBase::feed(const char* data, size_t len) {
-        return buffer.feed(data, len);
+        buffer.feed(data, len);
+        return (!maxBufferSize || buffer.getSize() <= maxBufferSize);
     }
 
     void
@@ -769,7 +770,7 @@ Handler::onInput(const char* buffer, size_t len, const std::shared_ptr<Tcp::Peer
 
 void
 Handler::onConnection(const std::shared_ptr<Tcp::Peer>& peer) {
-    peer->putData(ParserData, std::make_shared<Private::Parser<Http::Request>>());
+    peer->putData(ParserData, std::make_shared<Private::Parser<Http::Request>>(peer->getMaxBufferSize()));
 }
 
 void
