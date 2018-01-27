@@ -131,6 +131,61 @@ private:
     size_t size;
 };
 
+template<size_t N, typename CharT = char>
+class DynamicBuf : public StreamBuf<CharT> {
+public:
+    typedef StreamBuf<CharT> Base;
+
+    DynamicBuf()
+      : data_(N, 0), size(0)
+    {
+        Base::setg(data_.data(), data_.data(), data_.data() + N);
+    }
+
+    template<size_t M>
+    DynamicBuf(char (&arr)[M]) : data_(arr, arr+M) {
+        size = M;
+        Base::setg(data_.data(), data_.data(), data_.data() + M);
+    }
+    
+    bool feed(const char* data, size_t len) {
+        if (size + len >= N) {
+            reserve(size + len);
+        }
+
+        memcpy(data_.data() + size, data, len);
+        CharT *cur = nullptr;
+        if (this->gptr()) {
+            cur = this->gptr();
+        } else {
+            cur = data_.data() + size;
+        }
+
+        Base::setg(data_.data(), cur, data_.data() + size + len);
+
+        size += len;
+        return true;
+    }
+
+    void reset() {
+        memset(data_.data(), 0, data_.size());
+        size = 0;
+        Base::setg(data_.data(), data_.data(), data_.data());
+    }
+
+    void reserve(size_t size) {
+        const auto getpos = this->gptr() - this->eback();
+        const size_t oldSize = data_.size();
+        data_.resize(size);
+        this->setp(&data_[0] + oldSize, &data_[0] + size);
+        this->setg(&data_[0], &data_[0] + getpos, &data_[0] + size);
+    }
+
+  private:
+    std::vector<CharT> data_;
+    size_t size;
+};
+
 struct Buffer {
     Buffer()
         : data(nullptr)
